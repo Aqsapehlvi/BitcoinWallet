@@ -1,0 +1,162 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using BTCWebWallet.RPCClient
+@using BTCWebWallet.Helpers
+
+@inject IViewLocalizer Localizer
+
+@model BlockChainInfoResult 
+
+<div class="col">
+    @if (Model != null)
+    {
+        <div class="card panel-default">
+            <div class="card-header">@Localizer["BlockchainStatus"]</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-7 text-muted">
+                        @Localizer["Chain"]
+                        <div class="small"><i class="bi bi-info-circle"></i> @Localizer["ChainDesc"]</div>
+                    </div>
+                    <div class="col-md-5">@Model.Chain</div>
+                    <div class="col-md-7 text-muted">
+                        @Localizer["Blocks"]
+                        <div class="small"><i class="bi bi-info-circle"></i> @Localizer["BlocksDesc"]</div>
+                    </div>
+                    <div class="col-md-5">@Model.Blocks</div>
+                    <div class="col-md-7 text-muted">
+                        @Localizer["Headers"]
+                        <div class="small"><i class="bi bi-info-circle"></i> @Localizer["HeadersDesc"]</div>
+                    </div>
+                    <div class="col-md-5">@Model.Headers</div>
+                    @* <div class="col-md-7 text-muted">Best Block Hash</div>
+                    <div class="col-md-5">@Model.Bestblockhash</div> *@
+                    <div class="col-md-7 text-muted">
+                        @Localizer["Difficulty"]
+                        <div class="small"><i class="bi bi-info-circle"></i> @Localizer["DifficultyDesc"]</div>
+                    </div>
+                    <div class="col-md-5">@Model.Difficulty.ToString("F16")</div>
+                    <div class="col-md-7 text-muted">
+                        @Localizer["MedianTime"]
+                        <div class="small"><i class="bi bi-info-circle"></i> @Localizer["MedianTimeDesc"]</div>
+                    </div>
+                    <div class="col-md-5">@Model.Mediantime.ToDateTime().ToLocalTime().ToString()</div>                    
+                    <div class="col-md-7 text-muted">
+                        @Localizer["VerificationProgress"]
+                        <div class="small"><i class="bi bi-info-circle"></i> @Localizer["VerificationProgressDesc"]</div>
+                    </div>
+                    <div class="col-md-5">                        
+                        <div class="progress">
+                            <div class="progress-bar" style="width: @(Model.Verificationprogress100)%; role="progressbar" aria-valuenow="@(Model.Verificationprogress100)" aria-valuemin="0" aria-valuemax="100"></div>
+                        </div>
+                        <div class="row p-3">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">@Localizer["CheckLevel"]</span>
+                                <select id="dd_VLevel" class="form-select">                                
+                                    <option value="0">@Localizer["VLevel0"]</option>
+                                    <option value="1">@Localizer["VLevel1"]</option>
+                                    <option value="2">@Localizer["VLevel2"]</option>
+                                    <option value="3" selected>@Localizer["VLevel3"]</option>
+                                    <option value="4">@Localizer["VLevel4"]</option>
+                                </select>
+                            </div>
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text">@Localizer["NBlocks"]</span>
+                                <input id="txt_nblocks" type="number" class="form-control" value="6" min="0">
+                            </div>
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-sm btn-primary" onclick="onVerifyChain();">@Localizer["VerifyChain"]</button>
+                            </div>
+                            <div id="info_verifychain">
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-7 text-muted">
+                        @Localizer["InitialBlockDownload"]
+                        <div class="small"><i class="bi bi-info-circle"></i> @Localizer["InitialBlockDownloadDesc"]</div>
+                    </div>
+                    <div class="col-md-5">
+                        @if (Model.Initialblockdownload)
+                        {
+                            <i class="bi bi-check-lg"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-x-lg"></i>
+                        }
+                    </div>
+                    @* <div class="col-md-7 text-muted">Chain Work</div>
+                    <div class="col-md-5">@Model.Chainwork</div> *@
+                    <div class="col-md-7 text-muted">
+                        @Localizer["SizeOnDisk"]
+                        <div class="small"><i class="bi bi-info-circle"></i> @Localizer["SizeOnDiskDesc"]</div>
+                    </div>
+                    <div class="col-md-5">@Model.Size_on_disk.AsDiskSizeString()</div>
+                    <div class="col-md-7 text-muted">
+                        @Localizer["Pruned"]
+                        <div class="small"><i class="bi bi-info-circle"></i> @Localizer["PrunedDesc"]</div>
+                    </div>
+                    <div class="col-md-5">
+                        @if (Model.Pruned)
+                        {
+                            <i class="bi bi-check-lg"></i>
+                        }
+                        else
+                        {
+                            <i class="bi bi-x-lg"></i>
+                        }
+                    </div>
+                    @if (Model.Pruned) 
+                    {
+                        <div class="col-md-7 text-muted">
+                            @Localizer["PruneHeight"]
+                            <div class="small"><i class="bi bi-info-circle"></i> @Localizer["PruneHeightDesc"]</div>
+                        </div>
+                        <div class="col-md-5">@Model.Pruneheight.AsDiskSizeString()</div>
+                        <div class="col-md-7 text-muted">
+                            @Localizer["AutomaticPruning"]
+                            <div class="small"><i class="bi bi-info-circle"></i> @Localizer["AutomaticPruningDesc"]</div>
+                        </div>
+                        <div class="col-md-5">
+                            @if (Model.Automatic_pruning)
+                            {
+                                <i class="bi bi-check-lg"></i>
+                            }
+                            else
+                            {
+                                <i class="bi bi-x-lg"></i>
+                            }
+                        </div>
+                        <div class="col-md-7 text-muted">
+                            @Localizer["PruneTargetSize"]
+                            <div class="small"><i class="bi bi-info-circle"></i> @Localizer["PruneTargetSizeDesc"]</div>
+                        </div>
+                        <div class="col-md-5">@Model.Prune_target_size.AsDiskSizeString()</div>
+                    }
+                    @if (Model.Softforks != null) 
+                    {
+                        <div class="col-md-12 h4">
+                            @Localizer["Softforks"]
+                            <div class="small"><i class="bi bi-info-circle"></i> @Localizer["SoftforksDesc"]</div>
+                        </div>
+                        foreach (var softFork in Model.Softforks)
+                        {
+                            <div class="col-md-12">
+                                <div class="card panel-info">
+                                    <div class="card-header">@softFork.Key</div>
+                                    <div class="card-body">
+                                        @(await Html.PartialAsync("_SoftFork", softFork.Value))
+                                    </div>
+                                </div>                                
+                            </div>
+                        }
+                    }                                                       
+                    <div class="col-md-7 text-muted">
+                        @Localizer["Warnings"]
+                        </div>
+                    <div class="col-md-5">@Model.Warnings</div>                    
+                </div>
+            </div>
+        </div>
+    }
+</div>
